@@ -1,4 +1,4 @@
 twends
 ======
 
-Trending twitter topic visualization
+Twitter trending topic visualization
