@@ -17,7 +17,7 @@ def get_tweets(api, tag):
     """
     Returns queue of tweets with a given hashtag
     """
-    tweets = api.search(tag)
+    tweets = api.search(q=tag, count=100)
     print len(tweets)
 
 def get_trends(api, loc=1):
@@ -35,6 +35,7 @@ def main():
     api = connect_api()
     trends = get_trends(api,23424977)
     for tag in range(len(trends)):
+        print trends[tag]
         get_tweets(api, trends[tag])
 if __name__ == '__main__':
     main()
