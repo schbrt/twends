@@ -1,17 +1,20 @@
 import tweepy
 import secret_pass
-import pyzmq as zmq
-
+from flask import Flask
+from flask_sockets import Sockets
 try:
     import simplejson as json
 except ImportError:
     import json
 
+app = Flask(__name__)
+sockets = Sockets(app)
 
 class StreamListener(tweepy.StreamListener):
     def __init__(self, api):
         self.api = api
-        super(tweepy.StreamListener)
+        super(StreamListener, self).__init__()
+
     def on_data(self, data):
         d = json.loads(data)
         if d['geo'] or d['place']:
@@ -48,14 +51,15 @@ def get_trends(api, loc=1):
     tags = [trend['name'] for trend in trend_list]
     return tags
 
+@app.route('/')
 def main():
     auth = set_auth()
     api = tweepy.API(auth)
-    trends = get_trends(api, 23424977)
+    trends = get_trends(api)#, 23424977)
     ears = StreamListener(api)
     stream = tweepy.Stream(auth, ears)
     while True:
-        print stream.filter(track=trends)
+        stream.filter(track=trends)
 
 if __name__ == '__main__':
-    main()
+    app.run()
