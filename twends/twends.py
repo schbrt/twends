@@ -1,24 +1,41 @@
 import tweepy
 import secret_pass
+import pyzmq as zmq
+
 try:
     import simplejson as json
 except ImportError:
     import json
 
 
-def connect_api():
+class StreamListener(tweepy.StreamListener):
+    def __init__(self, api):
+        self.api = api
+        super(tweepy.StreamListener)
+    def on_data(self, data):
+        d = json.loads(data)
+        if d['geo'] or d['place']:
+            print d['text']
+        return d
+
+    def on_error(self, status):
+        print status
+
+def set_auth():
     keys = secret_pass.secret_dict()
     auth = tweepy.auth.OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
-    #auth.set_access_token(keys['access_key'], keys['access_secret'])
-    api = tweepy.API(auth)
-    return api
+    auth.set_access_token(keys['access_key'], keys['access_secret'])
+    return auth
 
 def get_tweets(api, tag):
     """
     Returns queue of tweets with a given hashtag
     """
     tweets = api.search(q=tag, count=100)
-    print len(tweets)
+    for i in range(len(tweets)):
+        if tweets[i].geo:
+            print tweets[i]
+    return tweets
 
 def get_trends(api, loc=1):
     """
@@ -32,10 +49,13 @@ def get_trends(api, loc=1):
     return tags
 
 def main():
-    api = connect_api()
-    trends = get_trends(api,23424977)
-    for tag in range(len(trends)):
-        print trends[tag]
-        get_tweets(api, trends[tag])
+    auth = set_auth()
+    api = tweepy.API(auth)
+    trends = get_trends(api, 23424977)
+    ears = StreamListener(api)
+    stream = tweepy.Stream(auth, ears)
+    while True:
+        print stream.filter(track=trends)
+
 if __name__ == '__main__':
     main()
