@@ -1,5 +1,5 @@
 import tweepy
-import secret_pass
+import key_config
 from flask import Flask
 from flask_sockets import Sockets
 try:
@@ -25,7 +25,7 @@ class StreamListener(tweepy.StreamListener):
         print status
 
 def set_auth():
-    keys = secret_pass.secret_dict()
+    keys = key_config.key_dict()
     auth = tweepy.auth.OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
     auth.set_access_token(keys['access_key'], keys['access_secret'])
     return auth
@@ -51,7 +51,7 @@ def get_trends(api, loc=1):
     tags = [trend['name'] for trend in trend_list]
     return tags
 
-@app.route('/')
+#@app.route('/')
 def main():
     auth = set_auth()
     api = tweepy.API(auth)
@@ -62,4 +62,5 @@ def main():
         stream.filter(track=trends)
 
 if __name__ == '__main__':
-    app.run()
+    #app.run()
+    main()
