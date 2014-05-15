@@ -1,14 +1,14 @@
 import tweepy
 import key_config
-from flask import Flask
-from flask_sockets import Sockets
+from flask import Flask, render_template
+from flask.ext.socketio import SocketIO, emit
 try:
     import simplejson as json
 except ImportError:
     import json
 
 app = Flask(__name__)
-sockets = Sockets(app)
+socket = SocketIO(app)
 
 class StreamListener(tweepy.StreamListener):
     def __init__(self, api):
@@ -28,7 +28,7 @@ def set_auth():
     keys = key_config.key_dict()
     auth = tweepy.auth.OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
     auth.set_access_token(keys['access_key'], keys['access_secret'])
-    return auth
+    return authg
 
 def get_tweets(api, tag):
     """
@@ -51,7 +51,7 @@ def get_trends(api, loc=1):
     tags = [trend['name'] for trend in trend_list]
     return tags
 
-#@app.route('/')
+@app.route('/')
 def main():
     auth = set_auth()
     api = tweepy.API(auth)
@@ -62,5 +62,4 @@ def main():
         stream.filter(track=trends)
 
 if __name__ == '__main__':
-    #app.run()
-    main()
+    app.run()
