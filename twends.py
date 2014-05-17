@@ -1,25 +1,18 @@
 import tweepy
 import key_config
-from flask import Flask, render_template
-from flask.ext.socketio import SocketIO, emit
+from flask import Flask
 try:
     import simplejson as json
 except ImportError:
     import json
 
 app = Flask(__name__)
-socket = SocketIO(app)
 
 class StreamListener(tweepy.StreamListener):
-    def __init__(self, api):
-        self.api = api
-        super(StreamListener, self).__init__()
-
     def on_data(self, data):
         d = json.loads(data)
         if d['geo'] or d['place']:
             print d['text']
-        return d
 
     def on_error(self, status):
         print status
@@ -28,7 +21,7 @@ def set_auth():
     keys = key_config.key_dict()
     auth = tweepy.auth.OAuthHandler(keys['consumer_key'], keys['consumer_secret'])
     auth.set_access_token(keys['access_key'], keys['access_secret'])
-    return authg
+    return auth
 
 def get_tweets(api, tag):
     """
@@ -58,8 +51,12 @@ def main():
     trends = get_trends(api)#, 23424977)
     ears = StreamListener(api)
     stream = tweepy.Stream(auth, ears)
-    while True:
+    try:
         stream.filter(track=trends)
+    except:
+        stream.disconnect()
+        print "Error"
 
 if __name__ == '__main__':
-    app.run()
+    #app.run()
+    main()
