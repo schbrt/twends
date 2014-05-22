@@ -1,21 +1,14 @@
 import tweepy
 import key_config
-from flask import Flask
+from flask import Flask, render_template
 try:
     import simplejson as json
 except ImportError:
     import json
 
+
 app = Flask(__name__)
 
-class StreamListener(tweepy.StreamListener):
-    def on_data(self, data):
-        d = json.loads(data)
-        if d['geo'] or d['place']:
-            print d['text']
-
-    def on_error(self, status):
-        print status
 
 def set_auth():
     keys = key_config.key_dict()
@@ -23,15 +16,21 @@ def set_auth():
     auth.set_access_token(keys['access_key'], keys['access_secret'])
     return auth
 
-def get_tweets(api, tag):
+
+def get_tweets(api, trends):
     """
-    Returns queue of tweets with a given hashtag
+    Returns dictionary of lists of tweets for given hashtag
     """
-    tweets = api.search(q=tag, count=100)
-    for i in range(len(tweets)):
-        if tweets[i].geo:
-            print tweets[i]
-    return tweets
+    trend_dict = {}
+    for trend in trends:
+        tweets = api.search(q=trend, count=100)
+        with_geo = []
+        for i in range(len(tweets)):
+            if tweets[i].geo:
+                with_geo.append(tweets[i])
+        trend_dict[trend] = with_geo
+    return trend_dict
+
 
 def get_trends(api, loc=1):
     """
@@ -44,19 +43,20 @@ def get_trends(api, loc=1):
     tags = [trend['name'] for trend in trend_list]
     return tags
 
-@app.route('/')
+
 def main():
     auth = set_auth()
     api = tweepy.API(auth)
-    trends = get_trends(api)#, 23424977)
-    ears = StreamListener(api)
-    stream = tweepy.Stream(auth, ears)
-    try:
-        stream.filter(track=trends)
-    except:
-        stream.disconnect()
-        print "Error"
+    trends = get_trends(api)  # , 23424977)
+    trend_dict = get_tweets(api, trends)
+    for item in trend_dict:
+        print len(item)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 if __name__ == '__main__':
-    #app.run()
     main()
