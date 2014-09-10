@@ -1,6 +1,5 @@
 import tweepy
 import key_config
-from pymongo import MongoClient
 from flask import Flask, render_template
 try:
     import simplejson as json
@@ -9,6 +8,10 @@ except ImportError:
 
 
 app = Flask(__name__)
+
+class StreamListener(tweepy.StreamListener):
+    def on_data(self, data):
+        print data
 
 
 def set_auth():
@@ -58,13 +61,19 @@ def tweet_handler(api):
     return trend_dict
 
 
+def update_db(db, doc, coll):
+    """
+    Deletes the specified collection of previous trends, updates with new trend dict.
+    """
+    if coll in db.collection_names():
+        db.drop_colletion(coll)
+    db.coll.insert(doc)
+
+
 def main():
-    client = MongoClient()
-    db = client.twends              # initialize and connect to mongodb
     auth = set_auth()
-    api = tweepy.API(auth)       # connect to twitter api, retrive api wrapper
+    api = tweepy.API(auth)                         # connect to twitter api, retrive api wrapper
     trend_dict = tweet_handler(api)
-    db.insert()                            # put retrieved tweets in mongodb
     for item in trend_dict:
         print len(item)
 
