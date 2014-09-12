@@ -2,6 +2,7 @@ import tweepy
 from textblob import TextBlob
 import key_config
 from flask import Flask, render_template
+from flask_sockets import Sockets
 try:
     import simplejson as json
 except ImportError:
@@ -14,16 +15,13 @@ class StreamListener(tweepy.StreamListener):
 
     def on_data(self, data):
         self.count += 1
-        #print self.count
         data = json.loads(data)
-        tweet = dict()
         if data['coordinates'] is not None:
             tweet = {'id': data['id'], 'coords': data['coordinates'], 'text': data['text']}
             sent = TextBlob(tweet['text'])
-            print sent.sentiment
-            print tweet['text']
+            tweet['polarity'] = sent.sentiment.polarity
+            print tweet
             jsontweet = json.dumps(tweet)
-        #print data
         return True
 
     def on_error(self, status):
@@ -42,7 +40,7 @@ def set_auth():
 
 if __name__ == '__main__':
     auth = set_auth()
-    api = tweepy.API(auth)                         # connect to twitter api, retrive api wrapper
+    api = tweepy.API(auth)                # connect to twitter api, retrive api wrapper
     listener = StreamListener()
     stream = tweepy.Stream(auth, listener)
     stream.filter(locations=[-180, -90, 180, 90], languages=['en'])
