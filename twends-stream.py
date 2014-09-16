@@ -2,11 +2,14 @@ import tweepy
 from textblob import TextBlob
 import key_config
 from flask import Flask, render_template
-from flask_sockets import Sockets
+from flask.ext.socketio import SocketIO
 try:
     import simplejson as json
 except ImportError:
     import json
+
+app = Flask(__name__)
+socketio = SocketIO(app)
 
 
 class StreamListener(tweepy.StreamListener):
@@ -22,10 +25,15 @@ class StreamListener(tweepy.StreamListener):
             tweet['polarity'] = sent.sentiment.polarity
             print tweet
             jsontweet = json.dumps(tweet)
+            self.handle_json(jsontweet)
         return True
 
     def on_error(self, status):
         print 'Error: ' + repr(status)
+
+    @socketio.on('json')
+    def handle_json(message):
+        SocketIO.send(message, json=True)
 
 
 def set_auth():
@@ -38,9 +46,12 @@ def set_auth():
     return auth
 
 
-if __name__ == '__main__':
+@app.route('/')
+def initialize():
     auth = set_auth()
-    api = tweepy.API(auth)                # connect to twitter api, retrive api wrapper
     listener = StreamListener()
     stream = tweepy.Stream(auth, listener)
     stream.filter(locations=[-180, -90, 180, 90], languages=['en'])
+
+if __name__ == '__main__':
+    socketio.run(app)
