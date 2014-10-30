@@ -1,11 +1,21 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <title>Twends - Twitter Trends Visualization</title>
 </head>
 
 <body>
     <h1>Twends</h1>
+
+<script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script type="text/javascript" charset="utf-8">
+    var socket = io.connect('//localhost:5000');
+
+     socket.on('json', function(msg){
+        console.log(msg);
+    });
+</script>
+
 </body>
 </html>

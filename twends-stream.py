@@ -1,12 +1,10 @@
 import tweepy
+import json
 from textblob import TextBlob
 import key_config
 from flask import Flask, render_template
 from flask.ext.socketio import SocketIO
-try:
-    import simplejson as json
-except ImportError:
-    import json
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -47,6 +45,10 @@ def set_auth():
 
 
 @app.route('/')
+def index():
+    return render_template('index.html')
+
+
 def initialize():
     auth = set_auth()
     listener = StreamListener()
