@@ -29,9 +29,14 @@ class StreamListener(tweepy.StreamListener):
     def on_error(self, status):
         print 'Error: ' + repr(status)
 
-    @socketio.on('json')
+    @socketio.on('json', namespace='/data')
     def handle_json(message):
         SocketIO.send(message, json=True)
+
+
+@socketio.on('connect', namespace='/data')
+def test_connect():
+    print 'Socket connection opened.'
 
 
 def set_auth():
@@ -49,6 +54,7 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/data')
 def initialize():
     auth = set_auth()
     listener = StreamListener()
