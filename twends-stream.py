@@ -21,17 +21,16 @@ class StreamListener(tweepy.StreamListener):
             tweet = {'id': data['id'], 'coords': data['coordinates'], 'text': data['text']}
             sent = TextBlob(tweet['text'])
             tweet['polarity'] = sent.sentiment.polarity
-            jsontweet = json.dumps(tweet)
-            self.handle_json(jsontweet)
+            #jsontweet = json.dumps(tweet)
+            self.handle_json(tweet)
         return True
 
     def on_error(self, status):
         print 'Error: ' + repr(status)
 
-    @socketio.on('json', namespace='/data')
-    def handle_json(self, message):
-        SocketIO.emit(socketio, message, json=True)
-        print 'tweet sent to client'
+    def handle_json(self, json):
+        socketio.emit('event', json, namespace='/data')
+        print('received json: ' + str(json))
 
 
 def set_auth():
