@@ -1,8 +1,9 @@
 var socket = io.connect('http://localhost:5000/data');
 
 socket.on('connect', function() {
-    socket.emit('my event', {data: 'I\'m connected!'});
+    console.log('Socket connection opened (Client).');
 });
- socket.on('json', function(msg){
+
+socket.on('json', function(msg){
     console.log(msg);
 });
