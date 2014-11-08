@@ -9,7 +9,6 @@ from flask.ext.socketio import SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-
 class StreamListener(tweepy.StreamListener):
     def __init__(self):
         self.count = 0
@@ -54,7 +53,7 @@ def initialize():
     auth = set_auth()
     listener = StreamListener()
     stream = tweepy.Stream(auth, listener)
-    stream.filter(locations=[-180, -90, 180, 90], languages=['en'])
+    stream.filter(locations=[-180, -90, 180, 90], languages=['en'], async=True)
 
 if __name__ == '__main__':
     socketio.run(app)
