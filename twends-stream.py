@@ -1,5 +1,6 @@
 import tweepy
 import json
+import sys
 from textblob import TextBlob
 import key_config
 from flask import Flask, render_template
@@ -8,6 +9,7 @@ from flask.ext.socketio import SocketIO
 
 app = Flask(__name__)
 socketio = SocketIO(app)
+
 
 class StreamListener(tweepy.StreamListener):
     def __init__(self):
@@ -49,11 +51,11 @@ def index():
 
 @socketio.on('connect', namespace='/data')
 def initialize():
-    print 'Socket connection opened.'
-    auth = set_auth()
-    listener = StreamListener()
-    stream = tweepy.Stream(auth, listener)
-    stream.filter(locations=[-180, -90, 180, 90], languages=['en'], async=True)
+        print 'Socket connection opened.'
+        auth = set_auth()
+        listener = StreamListener()
+        stream = tweepy.Stream(auth, listener)
+        stream.filter(locations=[-180, -90, 180, 90], languages=['en'], async=True)
 
 if __name__ == '__main__':
-    socketio.run(app)
+        socketio.run(app)
