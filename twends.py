@@ -1,17 +1,37 @@
 import tweepy
+import json
+import sys
+from textblob import TextBlob
 import key_config
 from flask import Flask, render_template
-try:
-    import simplejson as json
-except ImportError:
-    import json
+from flask.ext.socketio import SocketIO
 
 
 app = Flask(__name__)
+socketio = SocketIO(app)
+
 
 class StreamListener(tweepy.StreamListener):
+    def __init__(self):
+        self.count = 0
+
     def on_data(self, data):
-        print data
+        self.count += 1
+        data = json.loads(data)
+        if data['coordinates'] is not None:
+            tweet = {'id': data['id'], 'coords': data['coordinates'], 'text': data['text']}
+            sent = TextBlob(tweet['text'])
+            tweet['polarity'] = sent.sentiment.polarity
+            #jsontweet = json.dumps(tweet)
+            self.handle_json(tweet)
+        return True
+
+    def on_error(self, status):
+        print 'Error: ' + repr(status)
+
+    def handle_json(self, json):
+        socketio.emit('event', json, namespace='/data')
+        print('received json: ' + str(json))
 
 
 def set_auth():
@@ -24,64 +44,18 @@ def set_auth():
     return auth
 
 
-def get_tweets(api, trends):
-    """
-    Returns dictionary of lists of tweets for given hashtag
-    """
-    trend_dict = {}
-    for trend in trends:
-        tweets = api.search(q=trend, count=100)
-        with_geo = []
-        for i in range(len(tweets)):
-            if tweets[i].geo:
-                with_geo.append(tweets[i])
-        trend_dict[trend] = with_geo
-    return trend_dict
-
-
-def get_trends(api, loc=1):
-    """
-    Returns a list of trending topics for the given location.
-    Default location is WOEID = 1, worldwide
-    """
-    trend_dict = api.trends_place(loc)
-    data = trend_dict[0]
-    trend_list = data['trends']
-    tags = [trend['name'] for trend in trend_list]
-    return tags
-
-
-def tweet_handler(api):
-    """
-    Calls functions to find trends, gets tweets based off of trends, then
-    creates a dictionary of the form {trend: [list of tweets]}
-    """
-    trends = get_trends(api)  # , 23424977)
-    trend_dict = get_tweets(api, trends)
-    return trend_dict
-
-
-def update_db(db, doc, coll):
-    """
-    Deletes the specified collection of previous trends, updates with new trend dict.
-    """
-    if coll in db.collection_names():
-        db.drop_colletion(coll)
-    db.coll.insert(doc)
-
-
-def main():
-    auth = set_auth()
-    api = tweepy.API(auth)                         # connect to twitter api, retrive api wrapper
-    trend_dict = tweet_handler(api)
-    for item in trend_dict:
-        print len(item)
-
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
+@socketio.on('connect', namespace='/data')
+def initialize():
+        print 'Socket connection opened.'
+        auth = set_auth()
+        listener = StreamListener()
+        stream = tweepy.Stream(auth, listener)
+        stream.filter(locations=[-180, -90, 180, 90], languages=['en'], async=True)
+
 if __name__ == '__main__':
-    main()
+        socketio.run(app)
