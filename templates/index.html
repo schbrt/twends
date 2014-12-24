@@ -4,38 +4,35 @@
     <title>Twends - Twitter Trends Visualization</title>
 </head>
 
+<style>
+path {
+  fill: none;
+  stroke: #000;
+  stroke-width: .4px;
+}
+
+.land-boundary {
+  stroke-width: .7px;
+}
+
+svg {
+    display: block;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+</style>
+
 <body>
-    <h1>Twends</h1>
     <div id="content">
     </div>
+
     <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js"></script>
     <script src="http://d3js.org/topojson.v1.min.js"></script>
-    <script type="text/javascript" src="static/index.js"></script>
+    <!--<script type="text/javascript" src="static/index.js"></script> -->
+    <script src="static/map.js"></script>
+
 </body>
-<script type="text/javascript">
-    var width = 960,
-    height = 1160;
 
-    var svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height)
-
-    var projection = d3.geo.albersUsa()
-        .scale(1000)
-        .translate([width / 2, height / 2]);
-        // https://github.com/mbostock/d3/wiki/Geo-Projections#wiki-translate
-
-
-    var path = d3.geo.path()
-        .projection(projection);
-
-    d3.json('static/us-states.json', function(error, us) {
-        svg.append('path')
-            .datum(topojson.feature(us, us.objects.state))
-            .attr('d', path);
-    });
-
-</script>
 </html>
