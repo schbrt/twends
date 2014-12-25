@@ -10,13 +10,14 @@ socket.on('disconnect', function() {
 
 socket.on('event', function(msg) {
     console.log(msg)
-    inner_set(msg.text)
+    //inner_set(msg.text)
 });
 
+/*
 inner_set = function(msg)  {
     document.getElementById("content").innerHTML = msg;
 };
-
 window.onload = function() {
     inner_set("loading")
 };
+*/
