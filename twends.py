@@ -22,7 +22,6 @@ class StreamListener(tweepy.StreamListener):
             tweet = {'id': data['id'], 'coords': data['coordinates'], 'text': data['text']}
             sent = TextBlob(tweet['text'])
             tweet['polarity'] = sent.sentiment.polarity
-            #jsontweet = json.dumps(tweet)
             self.handle_json(tweet)
         return True
 
